@@ -2,7 +2,7 @@ import numpy
 from .gaussian_process import GaussianProcessSimple as GP
 
 class MultiOutputGP:
-  def __init__(self, X, Y):
+  def __init__(self, X, Y, train=True):
     """
     X: n by d numpy array
     Y: n by m numpy array
@@ -14,8 +14,14 @@ class MultiOutputGP:
     self.m = Y.shape[1]
     for i in range(self.m):
       gaussian_process = GP(X, Y[:, i])
-      gaussian_process.train()
+      if train:
+        gaussian_process.train()
       self.gaussian_processes.append(gaussian_process)
+
+  def set_hypers(self, params_list):
+    for params, gp in zip(params_list, self.gaussian_processes):
+      gp.covariance.set_hyperparameters(params)
+      gp.build_precomputed_data()
 
   def sample(self, n_samples, x):
     """
@@ -43,4 +49,10 @@ class MultiOutputGP:
     Y = []
     for i in range(self.m):
       Y.append(self.gaussian_processes[i].predict(X).flatten())
+    return numpy.array(Y).T
+
+  def variance(self, X):
+    Y = []
+    for i in range(self.m):
+      Y.append(self.gaussian_processes[i].variance(X).flatten())
     return numpy.array(Y).T
