@@ -46,18 +46,25 @@ class ExpectedMetricCoverage:
     if opt_domain is None:
       self.opt_domain = TensorProductDomain([ClosedInterval(0, 1)] * self.gaussian_process.d)
 
-  def compute_expected_utility(self, x):
+  def compute_expected_utility(self, X):
     """
     Compute value via MC by generating sampling from y distribution at a point x, and then
     tossing points that are either outside the threshold box or too close to an existing metric value
     """
-    x = numpy.atleast_2d(x)
-    Y_samples = self.gaussian_process.sample(NUM_MC_SAMPLES, x)
-    Y_in_box = self.threshold_box.points_in_box(Y_samples)
+    Y_samples = self.gaussian_process.sample(NUM_MC_SAMPLES, X)
+    idx_under_ub = numpy.all(Y_samples <= self.threshold_box.ub, axis=1)
+    idx_over_lb = numpy.all(Y_samples >= self.threshold_box.lb, axis=1)
+    idx_in_threshold = numpy.logical_and(idx_over_lb, idx_under_ub)
+
     _, Y_obs = self.gaussian_process.get_historical_data()
-    dist_matrix = scipy.spatial.distance.cdist(Y_in_box, Y_obs)
+    dist_matrix = scipy.spatial.distance.cdist(Y_samples, Y_obs)
     idx_outside_range = numpy.all(dist_matrix > self.punchout_radius, axis=1)
-    return sum(idx_outside_range) / NUM_MC_SAMPLES
+
+    feasible_idx = numpy.logical_and(idx_in_threshold, idx_outside_range)
+    expected_utility = []
+    for i in range(X.shape[0]):
+      expected_utility.append(sum(feasible_idx[NUM_MC_SAMPLES*i: NUM_MC_SAMPLES*(i+1)]))
+    return numpy.array(expected_utility) / NUM_MC_SAMPLES
 
   def tiebreak_suggestions(self, X):
     """
@@ -84,11 +91,13 @@ class ExpectedMetricCoverage:
   def get_suggestion(self):
     n_points = 512
     X = self.opt_domain.generate_quasi_random_points_in_domain(n_points)
-    utility_values = [self.compute_expected_utility(x) for x in X]
+    utility_values = self.compute_expected_utility(X)
 
     # If all utility values are low...
     if numpy.sum(utility_values) < 1e-6:
       return self.tiebreak_suggestions(X)
     else:
       idxs = numpy.argmax(utility_values) # need to check for multiple argmaxes
+      if isinstance(idxs, list):
+        return X[numpy.random.choice(idxs), :]
       return X[idxs, :]

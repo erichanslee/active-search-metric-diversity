@@ -23,15 +23,15 @@ class MultiOutputGP:
       gp.covariance.set_hyperparameters(params)
       gp.build_precomputed_data()
 
-  def sample(self, n_samples, x):
+  def sample(self, n_samples, X):
     """
     Inputs
-    x: 1 by d numpy array
-    Y: n_samples by m array
+    x: n x d numpy array
+    Y: n * n_samples x m array (block-wise ordering)
     """
     Y = []
     for i in range(self.m):
-      Y.append(self.gaussian_processes[i].sample(n_samples, x).flatten())
+      Y.append(self.gaussian_processes[i].sample(n_samples, X).T.flatten())
     return numpy.array(Y).T
 
   def get_historical_data(self):
