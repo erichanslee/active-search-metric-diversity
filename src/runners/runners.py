@@ -1,9 +1,9 @@
 import numpy as np
-from lookahead.runners.bayesian_optimization import BayesianOptimization
-from lookahead.acquisitions.expected_improvement import ExpectedImprovement
-from lookahead.acquisitions.knowledge_gradient import KnowledgeGradient
-from lookahead.acquisitions.ucb import UpperConfidenceBound
-from lookahead.acquisitions.rollout_ei_vr import RolloutEI_VR
+from src.runners.bayesian_optimization import BayesianOptimization
+from src.acquisitions.expected_improvement import ExpectedImprovement
+from src.acquisitions.knowledge_gradient import KnowledgeGradient
+from src.acquisitions.ucb import UpperConfidenceBound
+from src.acquisitions.rollout_ei_vr import RolloutEI_VR
 
 
 class RandomRunner(BayesianOptimization):

@@ -1,7 +1,7 @@
 import numpy
 import scipy.linalg
 
-from lookahead.model._gaussian_process import GaussianProcess, GaussianProcessDataInterface
+from src.model._gaussian_process import GaussianProcess, GaussianProcessDataInterface
 
 DEFAULT_TIKHONOV_PARAMETER = 1.0e-10
 

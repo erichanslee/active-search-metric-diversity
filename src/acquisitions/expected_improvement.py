@@ -1,6 +1,6 @@
 import numpy as np
 from scipy.stats import norm
-from lookahead.acquisitions.acquisition_function_interface import AcquisitionFunctionInterface
+from src.acquisitions.acquisition_function_interface import AcquisitionFunctionInterface
 
 class ExpectedImprovement(AcquisitionFunctionInterface):
 

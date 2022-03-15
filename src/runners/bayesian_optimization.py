@@ -1,5 +1,5 @@
 import numpy as np
-from lookahead.model.gaussian_process import GaussianProcessSimple as GaussianProcess
+from src.model.gaussian_process import GaussianProcessSimple as GaussianProcess
 import os
 
 class BayesianOptimization(object):

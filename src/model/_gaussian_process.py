@@ -2,9 +2,9 @@ import copy
 import numpy
 
 from scipy.linalg import solve_triangular, cho_factor, cho_solve
-from lookahead.model.covariance import CovarianceInterface, DifferentiableCovariance
-from lookahead.model.historical_data import HistoricalData
-from lookahead.model.utils import compute_cholesky_for_gp_sampling
+from src.model.covariance import CovarianceInterface, DifferentiableCovariance
+from src.model.historical_data import HistoricalData
+from src.model.utils import compute_cholesky_for_gp_sampling
 
 MINIMUM_STD_DEV_GRAD_CHOLESKY = numpy.finfo(numpy.float64).eps
 MINIMUM_VARIANCE_GRAD_EI = 150 * MINIMUM_STD_DEV_GRAD_CHOLESKY ** 2
