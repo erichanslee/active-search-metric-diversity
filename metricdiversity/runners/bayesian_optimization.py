@@ -1,5 +1,5 @@
 import numpy as np
-from src.model.gaussian_process import GaussianProcessSimple as GaussianProcess
+from metricdiversity.model.gaussian_process import GaussianProcessSimple as GaussianProcess
 import os
 
 class BayesianOptimization(object):

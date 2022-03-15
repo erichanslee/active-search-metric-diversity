@@ -1,6 +1,6 @@
 import numpy as np
 from scipy.stats import norm
-from src.acquisitions.acquisition_function_interface import AcquisitionFunctionInterface
+from metricdiversity.acquisitions.acquisition_function_interface import AcquisitionFunctionInterface
 
 class ExpectedImprovement(AcquisitionFunctionInterface):
 

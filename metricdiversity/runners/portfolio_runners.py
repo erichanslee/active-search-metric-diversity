@@ -1,7 +1,7 @@
 import numpy as np
-from src.runners.bayesian_optimization import BayesianOptimization
-from src.acquisitions.rollout_portfolio import RolloutPortfolio, RolloutPortfolioEI
-from src.model.gaussian_process import GaussianProcessSimple as GaussianProcess
+from metricdiversity.runners.bayesian_optimization import BayesianOptimization
+from metricdiversity.acquisitions.rollout_portfolio import RolloutPortfolio, RolloutPortfolioEI
+from metricdiversity.model.gaussian_process import GaussianProcessSimple as GaussianProcess
 import os
 import csv
 

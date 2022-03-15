@@ -4,14 +4,14 @@
 import numpy as np
 import scipy as sp
 from scipy.linalg import solve_triangular, cho_solve, cholesky
-from src.model.domain import ClosedInterval
-from src.model.historical_data import HistoricalData
-from src.model.domain import TensorProductDomain
-from src.model.covariance import C4RadialMatern as Matern
-from src.model._gaussian_process import GaussianProcess
-from src.model.parametrization import GaussianProcessLogMarginalLikelihood as GPlml
-from src.model.scalar_optimization import LBFGSBOptimizer as lbfgs_opt
-from src.model.scalar_optimization import MultistartMaximizer as ms_opt
+from metricdiversity.model.domain import ClosedInterval
+from metricdiversity.model.historical_data import HistoricalData
+from metricdiversity.model.domain import TensorProductDomain
+from metricdiversity.model.covariance import C4RadialMatern as Matern
+from metricdiversity.model._gaussian_process import GaussianProcess
+from metricdiversity.model.parametrization import GaussianProcessLogMarginalLikelihood as GPlml
+from metricdiversity.model.scalar_optimization import LBFGSBOptimizer as lbfgs_opt
+from metricdiversity.model.scalar_optimization import MultistartMaximizer as ms_opt
 
 # Updates Cholesky by adding a
 # set of rows/columns, with
