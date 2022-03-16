@@ -56,9 +56,6 @@ class LBFGSBOptimizer(object):
   def dim(self):
     return self.domain.dim
 
-  def _domain_as_array(self):
-    return numpy.array([(interval.min, interval.max) for interval in self.domain.get_bounding_box()])
-
   def joint_function_gradient_eval(self, **kwargs):
     def decorated(point):
       if numpy.any(numpy.isnan(point)):
@@ -91,7 +88,7 @@ class LBFGSBOptimizer(object):
         fun=self._scipy_decorator(self.objective_function.compute_objective_function, **kwargs),
         x0=self.objective_function.current_point.flatten(),
         method='L-BFGS-B',
-        bounds=self._domain_as_array(),
+        bounds=self.domain.domain_bounds,
         options=options,
       )
     else:
@@ -101,6 +98,6 @@ class LBFGSBOptimizer(object):
         x0=self.objective_function.current_point.flatten(),
         method='L-BFGS-B',
         jac=True,
-        bounds=self._domain_as_array(),
+        bounds=self.domain.domain_bounds,
         options=options,
       )

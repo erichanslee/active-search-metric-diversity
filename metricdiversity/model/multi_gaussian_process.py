@@ -23,6 +23,10 @@ class MultiOutputGP:
       gp.covariance.set_hyperparameters(params)
       gp.build_precomputed_data()
 
+  @property
+  def dim(self):
+    return self.gaussian_processes[0].d
+
   def sample(self, n_samples, X):
     """
     Inputs

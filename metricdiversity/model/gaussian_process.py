@@ -4,7 +4,6 @@
 import numpy as np
 import scipy as sp
 from scipy.linalg import solve_triangular, cho_solve, cholesky
-from metricdiversity.model.domain import ClosedInterval
 from metricdiversity.model.historical_data import HistoricalData
 from metricdiversity.model.domain import TensorProductDomain
 from metricdiversity.model.covariance import C4RadialMatern as Matern
@@ -75,9 +74,10 @@ class GaussianProcessSimple(GaussianProcess):
             historical_data=self.historical_data,
             log_domain=True,
         )
-        hp_domain = TensorProductDomain([ClosedInterval(-7, 3)] + [ClosedInterval(-3, 4)] * self.d)
+        hp_domain = TensorProductDomain([[-7, 3]] + [[-3, 4]] * self.d)
         solver = ms_opt(lbfgs_opt(hp_domain, log_marginal_likelihood), num_multistarts=4)
-        self.covariance.set_hyperparameters(np.exp(solver.optimize()))
+        hps_opt = np.exp(solver.optimize())
+        self.covariance.set_hyperparameters(hps_opt)
         super().build_precomputed_data()
 
     def mean(self, xx):
@@ -101,7 +101,8 @@ class GaussianProcessSimple(GaussianProcess):
         for i in range(num_points):
             self.historical_data.append_historical_data(
                 points_sampled=XX[[i],:],
-                points_sampled_value=YY[[i]], points_sampled_noise_variance=np.array([1e-6])
+                points_sampled_value=YY[[i]],
+                points_sampled_noise_variance=np.array([1e-6])
                 )
         if retrain:
             self.train()

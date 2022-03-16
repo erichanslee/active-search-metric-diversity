@@ -2,7 +2,7 @@ import numpy
 import scipy
 
 from ..model.multi_gaussian_process import MultiOutputGP
-from ..model.domain import TensorProductDomain, ClosedInterval
+from ..model.domain import TensorProductDomain
 NUM_MC_SAMPLES = 512
 
 class ThresholdBox:
@@ -44,7 +44,11 @@ class ExpectedMetricCoverage:
     self.threshold_box = ThresholdBox(ub, lb)
     self.punchout_radius = punchout_radius
     if opt_domain is None:
-      self.opt_domain = TensorProductDomain([ClosedInterval(0, 1)] * self.gaussian_process.d)
+      self.opt_domain = TensorProductDomain([[0, 1]] * self.gaussian_process.d)
+
+  @property
+  def dim(self):
+    return self.gaussian_process.dim
 
   def compute_expected_utility(self, X):
     """
@@ -101,3 +105,7 @@ class ExpectedMetricCoverage:
       if isinstance(idxs, list):
         return X[numpy.random.choice(idxs), :]
       return X[idxs, :]
+
+  def evaluate_at_point_list(self, points):
+    assert len(points.shape) == 2
+    return self.compute_expected_utility(points)
