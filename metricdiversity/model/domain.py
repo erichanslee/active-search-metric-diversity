@@ -43,6 +43,22 @@ class TensorProductDomain(object):
     restricted_points = numpy.clip(points, lb, ub)
     return restricted_points
 
+  def generate_grid_points_in_domain(self, points_per_dimension):
+    points_per_dimension = numpy.asarray(points_per_dimension)
+    if points_per_dimension.size == 0 or not points_per_dimension.all():
+      return numpy.empty((0, self.dim))
+
+    if points_per_dimension.size == 1:
+      points_per_dimension = numpy.resize(points_per_dimension, self.dim)
+    per_axis_grid = [
+      numpy.linspace(bounds[0], bounds[1], points_per_dimension[i]) for i, bounds in enumerate(self.domain_bounds)
+    ]
+    mesh_grid = numpy.meshgrid(*per_axis_grid)
+    pts01 = numpy.vstack([numpy.ravel(g) for g in mesh_grid]).T
+    pts_scale = numpy.diff(self.domain_bounds, axis=1).ravel()
+    pts_min = self.domain_bounds[:, 0]
+    return pts_min + pts_scale * pts01
+
   def generate_quasi_random_points_in_domain(self, num_points, log_sample=False):
     r"""Generate quasi-random points in the domain.
 
