@@ -27,7 +27,7 @@ class MultiOutputGP:
     """
     Inputs
     x: n x d numpy array
-    Y: n * n_samples x m array (block-wise ordering)
+    Y: (n * n_samples) x m array (block-wise ordering, n blocks of shape n_samples x m)
     """
     Y = []
     for i in range(self.m):
