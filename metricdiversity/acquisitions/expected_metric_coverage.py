@@ -11,8 +11,8 @@ class ThresholdBox:
     Input
     ub, lb: array or list (shouldn't matter) of length m
     """
-    self.ub = ub
-    self.lb = lb
+    self.ub = numpy.array(ub)
+    self.lb = numpy.array(lb)
 
   def points_in_box(self, Y):
     """
@@ -30,7 +30,7 @@ class ThresholdBox:
 
 class ExpectedMetricCoverage:
 
-  def __init__(self, gaussian_process, ub, lb, punchout_radius, opt_domain=None):
+  def __init__(self, gaussian_process, ub, lb, punchout_radius, opt_domain=None, num_mc_samples=None):
     """
     Input
     gaussian_process: assumed to be an object of type MultiOutputGP
@@ -43,6 +43,7 @@ class ExpectedMetricCoverage:
     self.gaussian_process = gaussian_process
     self.threshold_box = ThresholdBox(ub, lb)
     self.punchout_radius = punchout_radius
+    self.num_mc_samples = num_mc_samples or NUM_MC_SAMPLES
     if opt_domain is None:
       self.opt_domain = TensorProductDomain([[0, 1]] * self.gaussian_process.d)
 
@@ -55,20 +56,24 @@ class ExpectedMetricCoverage:
     Compute value via MC by generating sampling from y distribution at a point x, and then
     tossing points that are either outside the threshold box or too close to an existing metric value
     """
-    Y_samples = self.gaussian_process.sample(NUM_MC_SAMPLES, X)
+    Y_samples = self.gaussian_process.sample(self.num_mc_samples, X)
     idx_under_ub = numpy.all(Y_samples <= self.threshold_box.ub, axis=1)
     idx_over_lb = numpy.all(Y_samples >= self.threshold_box.lb, axis=1)
     idx_in_threshold = numpy.logical_and(idx_over_lb, idx_under_ub)
 
     _, Y_obs = self.gaussian_process.get_historical_data()
-    dist_matrix = scipy.spatial.distance.cdist(Y_samples, Y_obs)
-    idx_outside_range = numpy.all(dist_matrix > self.punchout_radius, axis=1)
+    Y_obs = self.threshold_box.points_in_box(Y_obs)
+    if len(Y_obs) == 0:
+      idx_outside_range = numpy.ones_like(idx_in_threshold)
+    else:
+      dist_matrix = scipy.spatial.distance.cdist(Y_samples, Y_obs)
+      idx_outside_range = numpy.all(dist_matrix > self.punchout_radius, axis=1)
 
     feasible_idx = numpy.logical_and(idx_in_threshold, idx_outside_range)
     expected_utility = []
     for i in range(X.shape[0]):
-      expected_utility.append(sum(feasible_idx[NUM_MC_SAMPLES*i: NUM_MC_SAMPLES*(i+1)]))
-    return numpy.array(expected_utility) / NUM_MC_SAMPLES
+      expected_utility.append(sum(feasible_idx[self.num_mc_samples*i: self.num_mc_samples*(i+1)]))
+    return numpy.array(expected_utility) / self.num_mc_samples
 
   def tiebreak_suggestions(self, X):
     """

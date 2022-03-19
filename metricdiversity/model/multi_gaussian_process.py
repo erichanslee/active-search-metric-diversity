@@ -18,6 +18,10 @@ class MultiOutputGP:
         gaussian_process.train()
       self.gaussian_processes.append(gaussian_process)
 
+  def train(self):
+    for gp in self.gaussian_processes:
+      gp.train()
+
   def set_hypers(self, params_list):
     for params, gp in zip(params_list, self.gaussian_processes):
       gp.covariance.set_hyperparameters(params)

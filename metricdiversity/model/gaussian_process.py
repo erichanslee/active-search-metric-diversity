@@ -75,7 +75,7 @@ class GaussianProcessSimple(GaussianProcess):
             log_domain=True,
         )
         hp_domain = TensorProductDomain([[-7, 3]] + [[-3, 4]] * self.d)
-        solver = ms_opt(lbfgs_opt(hp_domain, log_marginal_likelihood), num_multistarts=4)
+        solver = ms_opt(lbfgs_opt(hp_domain, log_marginal_likelihood), num_multistarts=5)
         hps_opt = np.exp(solver.optimize())
         self.covariance.set_hyperparameters(hps_opt)
         super().build_precomputed_data()
