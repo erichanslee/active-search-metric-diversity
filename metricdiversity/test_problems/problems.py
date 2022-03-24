@@ -83,7 +83,7 @@ class RE21(TestProblem):
     {'name': 'x3', 'type': 'double', 'bounds': {'min': 1, 'max': 3}},
   ]
 
-  def __init__(self, thresholds=None, punchout_radius_param=None, punchout_radius_metric=None):
+  def __init__(self, thresholds=RE21_THRESHOLDS, punchout_radius_param=None, punchout_radius_metric=None):
     pass
 
   def objective_functions(self, x):
@@ -111,7 +111,7 @@ class RE22(TestProblem):
     {'name': 'x2', 'type': 'double', 'bounds': {'min': 0, 'max': 40}},
   ]
 
-  def __init__(self, thresholds=None, punchout_radius_param=None, punchout_radius_metric=None):
+  def __init__(self, thresholds=RE22_THRESHOLDS, punchout_radius_param=None, punchout_radius_metric=None):
     pass
 
   def objective_functions(self, x):
@@ -159,7 +159,7 @@ class RE23(TestProblem):
     {'name': 'x3', 'type': 'double', 'bounds': {'min': 10, 'max': 240}},
   ]
 
-  def __init__(self, thresholds=None, punchout_radius_param=None, punchout_radius_metric=None):
+  def __init__(self, thresholds=RE23_THRESHOLDS, punchout_radius_param=None, punchout_radius_metric=None):
     pass
 
   def objective_functions(self, x):
@@ -199,7 +199,7 @@ class RE24(TestProblem):
     {'name': 'x1', 'type': 'double', 'bounds': {'min': 0.5, 'max': 50}},
   ]
 
-  def __init__(self, thresholds=None, punchout_radius_param=None, punchout_radius_metric=None):
+  def __init__(self, thresholds=RE24_THRESHOLDS, punchout_radius_param=None, punchout_radius_metric=None):
     pass
 
   def objective_functions(self, x):
@@ -240,7 +240,7 @@ class RE25(TestProblem):
     {'name': 'x2', 'type': 'double', 'bounds': {'min': 0.09, 'max': 0.5}},
   ]
 
-  def __init__(self, thresholds=None, punchout_radius_param=None, punchout_radius_metric=None):
+  def __init__(self, thresholds=RE25_THRESHOLDS, punchout_radius_param=None, punchout_radius_metric=None):
     pass
 
   def objective_functions(self, x):
