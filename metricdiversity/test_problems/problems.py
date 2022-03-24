@@ -5,10 +5,14 @@ class TestProblem(object):
   parameter_names = []
   metric_names = []
 
-  def __init__(self, thresholds):
+  def __init__(self, thresholds, punchout_radius_param, punchout_radius_metric):
     assert len(thresholds) == len(self.metric_names)
     self.thresholds = thresholds
     self.constraints = [("gt", t) for t in self.thresholds]
+    assert 0 < punchout_radius_param <= 1
+    assert 0 < punchout_radius_metric
+    self.punchout_radius_param = punchout_radius_param
+    self.punchout_radius_metric = punchout_radius_metric
 
   def evaluate(self, suggestion):
     assert isinstance(suggestion, dict)
@@ -28,11 +32,19 @@ class TwoHumps(TestProblem):
   ]
   parameter_names = ["x0", "x1"]
   metric_names = ["f1", "f2"]
+  fixed_lengthscales = numpy.array([
+    [0.01, 0.3, 0.3],
+    [0.01, 0.3, 0.3],
+  ])
 
-  def __init__(self, thresholds=None):
+  def __init__(self, thresholds=None, punchout_radius_param=None, punchout_radius_metric=None):
     if thresholds is None:
       thresholds = [0.85, 0.85]
-    super().__init__(thresholds)
+    if punchout_radius_param is None:
+      punchout_radius_param = 0.1
+    if punchout_radius_metric is None:
+      punchout_radius_metric = 0.03
+    super().__init__(thresholds, punchout_radius_param, punchout_radius_metric)
 
   def _evaluate(self, suggestion):
     pt = numpy.array([suggestion[p] for p in self.parameter_names])
@@ -57,14 +69,12 @@ class EMI(TestProblem):
     dict(name="cbotr", bounds=dict(min=20, max=200), type="double"),
     dict(name="ctopr", bounds=dict(min=10, max=200), type="double"),
   ]
-
   metric_names = [
     "EMI_SE",
     "Transmission",
     "0.5 pitch - cbotr",
     "cbotr - ctopr",
   ]
-
   parameter_names = [
     "silvert",
     "bott",
@@ -72,11 +82,21 @@ class EMI(TestProblem):
     "cbotr",
     "ctopr",
   ]
+  fixed_lengthscales = numpy.array([
+    [20, 5, 100, 400, 200, 200],
+    [0.4, 5, 10, 100, 200, 200],
+    [20, 50, 100, 100, 50, 200],
+    [20, 50, 100, 400, 50,  50],
+  ])
 
-  def __init__(self, thresholds=None):
+  def __init__(self, thresholds=None, punchout_radius_param=None, punchout_radius_metric=None):
     if thresholds is None:
       thresholds = [40, 0.6, 0, 0]
-    super().__init__(thresholds)
+    if punchout_radius_param is None:
+      punchout_radius_param = 0.1 * numpy.sqrt(len(self.parameters))
+    if punchout_radius_metric is None:
+      punchout_radius_metric = 10
+    super().__init__(thresholds, punchout_radius_param, punchout_radius_metric)
 
   def _evaluate(self, suggestion):
     s = suggestion['silvert']
