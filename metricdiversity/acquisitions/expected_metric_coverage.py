@@ -28,7 +28,15 @@ class ThresholdBox:
 
 class ExpectedMetricCoverage:
 
-  def __init__(self, gaussian_process, lb, punchout_radius, opt_domain=None, num_mc_samples=None):
+  def __init__(
+    self,
+    gaussian_process,
+    lb,
+    punchout_radius,
+    opt_domain=None,
+    num_mc_samples=None,
+    normalize_y=False,
+  ):
     """
     Input
     gaussian_process: assumed to be an object of type MultiOutputGP
@@ -39,20 +47,26 @@ class ExpectedMetricCoverage:
 
     """
     self.gaussian_process = gaussian_process
+    self.lb = lb
     self.threshold_box = ThresholdBox(lb)
     self.punchout_radius = punchout_radius
     self.num_mc_samples = num_mc_samples or NUM_MC_SAMPLES
     if opt_domain is None:
       self.opt_domain = TensorProductDomain([[0, 1]] * self.gaussian_process.d)
+    self.normalize_y = normalize_y
 
   @property
   def dim(self):
     return self.gaussian_process.dim
 
+
   def compute_expected_utility(self, X):
     """
     Compute value via MC by generating sampling from y distribution at a point x, and then
     tossing points that are either outside the threshold box or too close to an existing metric value
+
+    Note: if normalization, we normalize Y based hypercube whose bottom edges are the thresholds and whose top edges
+    are determined by the maximum y value along that axis.
     """
     Y_samples = self.gaussian_process.sample(self.num_mc_samples, X)
     idx_in_threshold = numpy.all(Y_samples >= self.threshold_box.lb, axis=1)
@@ -62,6 +76,10 @@ class ExpectedMetricCoverage:
     if len(Y_obs) == 0:
       idx_outside_range = numpy.ones_like(idx_in_threshold)
     else:
+      if self.normalize_y and len(Y_obs) > 1:
+        ub = numpy.max(Y_obs, axis=0)
+        Y_samples = (Y_samples - self.lb) / (ub - self.lb)
+        Y_obs = (Y_obs - self.lb) / (ub - self.lb)
       dist_matrix = scipy.spatial.distance.cdist(Y_samples, Y_obs)
       idx_outside_range = numpy.all(dist_matrix > self.punchout_radius, axis=1)
 
