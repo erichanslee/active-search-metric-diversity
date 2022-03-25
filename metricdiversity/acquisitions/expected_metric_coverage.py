@@ -129,7 +129,7 @@ class ExpectedMetricCoverage:
 
 
 class EMCEngine(object):
-  def __init__(self, domain, thresholds, punchout_radius, hyperparameters=None, verbose=True):
+  def __init__(self, domain, thresholds, punchout_radius, hyperparameters=None, normalize_y=False, verbose=True):
     self.domain = domain
     self.thresholds = thresholds
     self.punchout_radius = punchout_radius
@@ -138,6 +138,7 @@ class EMCEngine(object):
     if self.hyperparameters is not None:
       assert self.hyperparameters.shape[0] == len(self.thresholds)
       assert self.hyperparameters.shape[1] == domain.dim + 1
+    self.normalize_y = normalize_y
     self.verbose = verbose
 
   def update_models(self, X, Y):
@@ -148,7 +149,7 @@ class EMCEngine(object):
     return mgp
 
   def get_next(self, model):
-    emc = ExpectedMetricCoverage(model, self.thresholds, self.punchout_radius)
+    emc = ExpectedMetricCoverage(model, self.thresholds, self.punchout_radius, normalize_y=self.normalize_y)
     de = DEOptimizer(self.domain, emc, 10 * self.domain.dim)
     next_point, all_results = de.optimize()
     best_emc = numpy.max(all_results["function_values"])
@@ -159,7 +160,16 @@ class EMCEngine(object):
 
 
 class ExpectedMetricCoverageService(object):
-  def __init__(self, parameters, constraints, punchout_radius, num_init_points=5, hyperparameters=None, verbose=True):
+  def __init__(
+    self,
+    parameters,
+    constraints,
+    punchout_radius,
+    num_init_points=5,
+    hyperparameters=None,
+    normalize_y=False,
+    verbose=True,
+  ):
     self.num_suggestions = 0
     self.num_observations = 0
     self.parameters = parameters
@@ -173,6 +183,7 @@ class ExpectedMetricCoverageService(object):
       self.thresholds,
       self.punchout_radius,
       hyperparameters,
+      normalize_y,
       verbose,
     )
     self.list_suggestions = []
