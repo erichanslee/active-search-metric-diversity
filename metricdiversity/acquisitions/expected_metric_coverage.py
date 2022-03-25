@@ -84,10 +84,9 @@ class ExpectedMetricCoverage:
       idx_outside_range = numpy.all(dist_matrix > self.punchout_radius, axis=1)
 
     feasible_idx = numpy.logical_and(idx_in_threshold, idx_outside_range)
-    expected_utility = []
-    for i in range(X.shape[0]):
-      expected_utility.append(sum(feasible_idx[self.num_mc_samples*i: self.num_mc_samples*(i+1)]))
-    return numpy.array(expected_utility) / self.num_mc_samples
+    feasible_idx = numpy.reshape(feasible_idx, (X.shape[0], self.num_mc_samples))
+    expected_utility = numpy.sum(feasible_idx, axis=1)
+    return expected_utility / self.num_mc_samples
 
   def tiebreak_suggestions(self, X):
     """
