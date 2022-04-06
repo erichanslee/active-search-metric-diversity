@@ -19,8 +19,9 @@ class TestProblem(object):
   parameters = []
   parameter_names = []
   metric_names = []
+  budget = 0
 
-  def __init__(self, thresholds, punchout_radius_param, punchout_radius_metric):
+  def __init__(self, thresholds, punchout_radius_param, punchout_radius_metric, is_minimization=False):
     assert len(thresholds) == len(self.metric_names)
     self.thresholds = thresholds
     self.constraints = [("gt", t) for t in self.thresholds]
@@ -28,12 +29,15 @@ class TestProblem(object):
     assert 0 < punchout_radius_metric
     self.punchout_radius_param = punchout_radius_param
     self.punchout_radius_metric = punchout_radius_metric
+    self.is_minimization = is_minimization
 
   def evaluate(self, suggestion):
     assert isinstance(suggestion, dict)
     assert all(pn in suggestion.keys() for pn in self.parameter_names)
     values = self._evaluate(suggestion)
     assert len(values) == len(self.metric_names)
+    if self.is_minimization:
+      return [-v for v in values]
     return values
 
   def _evaluate(self, suggestion):
@@ -51,15 +55,19 @@ class TwoHumps(TestProblem):
     [0.01, 0.3, 0.3],
     [0.01, 0.3, 0.3],
   ])
+  budget = 30
 
-  def __init__(self, thresholds=None, punchout_radius_param=None, punchout_radius_metric=None):
+  def __init__(self, thresholds=None, punchout_radius_param=None, punchout_radius_metric=None, scale_x=1, scale_y=1):
     if thresholds is None:
       thresholds = [0.85, 0.85]
     if punchout_radius_param is None:
-      punchout_radius_param = 0.1
+      punchout_radius_param = 0.1 * numpy.sqrt(len(self.parameters))
     if punchout_radius_metric is None:
       punchout_radius_metric = 0.03
     super().__init__(thresholds, punchout_radius_param, punchout_radius_metric)
+    self.scale_x = scale_x
+    self.scale_y = scale_y
+    self.punchout_radius_metric_normalized=0.2
 
   def _evaluate(self, suggestion):
     pt = numpy.array([suggestion[p] for p in self.parameter_names])
@@ -68,10 +76,48 @@ class TwoHumps(TestProblem):
 
   def objective_functions(self, x):
     assert len(x) == len(self.parameter_names)
-    scale_x = 1
-    scale_y = 1
-    f1 = numpy.exp(-0.5* ((x[0]-0.2)**2 + scale_x * (x[1]-0.5)**2))
-    f2 = numpy.exp(-0.5* ((x[0]-0.8)**2 + scale_y *(x[1]-0.5)**2))
+    f1 = numpy.exp(-0.5* ((x[0]-0.2)**2 + self.scale_x * (x[1]-0.5)**2))
+    f2 = numpy.exp(-0.5* ((x[0]-0.8)**2 + self.scale_y * (x[1]-0.5)**2))
+
+    return [f1, f2]
+
+class TwoHumpsScaling(TestProblem):
+  parameters = [
+    {'name': 'x0', 'type': 'double', 'bounds': {'min': 0, 'max': 1}},
+    {'name': 'x1', 'type': 'double', 'bounds': {'min': 0, 'max': 1}}
+  ]
+  parameter_names = ["x0", "x1"]
+  metric_names = ["f1", "f2"]
+  fixed_lengthscales = numpy.array([
+    [0.01, 0.3, 0.3],
+    [0.01, 0.3, 0.3],
+  ])
+  budget = 30
+
+  def __init__(self, thresholds=None, punchout_radius_param=None, punchout_radius_metric=None, scaling=1):
+    if thresholds is None:
+      thresholds = [0.85, 0.85]
+      if scaling > 1:
+        thresholds[0] = thresholds[0] * scaling
+    if punchout_radius_param is None:
+      punchout_radius_param = 0.1 * numpy.sqrt(len(self.parameters))
+    if punchout_radius_metric is None:
+      punchout_radius_metric = 0.03
+      if scaling > 1:
+        punchout_radius_metric = punchout_radius_metric * scaling / numpy.sqrt(2)
+    super().__init__(thresholds, punchout_radius_param, punchout_radius_metric)
+    self.scaling = scaling
+    self.fixed_lengthscales[0] = numpy.array([0.01 * scaling, 0.3, 0.3])
+
+  def _evaluate(self, suggestion):
+    pt = numpy.array([suggestion[p] for p in self.parameter_names])
+    values = self.objective_functions(pt)
+    return values
+
+  def objective_functions(self, x):
+    assert len(x) == len(self.parameter_names)
+    f1 = self.scaling * numpy.exp(-0.5* ((x[0]-0.2)**2 + (x[1]-0.5)**2))
+    f2 = numpy.exp(-0.5* ((x[0]-0.8)**2 + (x[1]-0.5)**2))
 
     return [f1, f2]
 
@@ -84,8 +130,23 @@ class RE21(TestProblem):
     {'name': 'x3', 'type': 'double', 'bounds': {'min': 1, 'max': 3}},
   ]
 
-  def __init__(self, thresholds=RE21_THRESHOLDS, punchout_radius_param=None, punchout_radius_metric=None):
-    pass
+  fixed_lengthscales = numpy.array([
+    [200, 0.5, 0.5, 1.0, 0.5],
+    [0.005, 0.5, 0.5, 0.5, 0.5],
+  ])
+
+  metric_names = ["f1", "f2"]
+  parameter_names = ["x0", "x1", "x2", "x3"]
+
+  def __init__(self, thresholds=None, punchout_radius_param=None, punchout_radius_metric=None):
+    if thresholds is None:
+      thresholds = [-2300, -0.02]
+    if punchout_radius_param is None:
+      punchout_radius_param = 0.3
+    if punchout_radius_metric is None:
+      punchout_radius_metric = 0.1
+
+    super().__init__(thresholds, punchout_radius_param, punchout_radius_metric, True)
 
   def objective_functions(self, x):
     x1, x2, x3, x4 = x
@@ -339,9 +400,22 @@ class RE33(TestProblem):
     {'name': 'x3', 'type': 'double', 'bounds': {'min': 11, 'max': 20}},
   ]
 
-  def __init__(self):
-    self.thresholds = RE33_THRESHOLDS
-    self.is_minimization = True
+  fixed_lengthscales = numpy.array([
+    [1.5, 5.0, 8.0, 2000, 2.0],
+    [1.5, 15.0, 25.0, 500, 2.0],
+    [10.0, 5.0, 8.0, 2000, 10.0],
+  ])
+  metric_names = ["f1", "f2", "f3"]
+  parameter_names = ["x0", "x1", "x2", "x3"]
+
+  def __init__(self, thresholds=None, punchout_radius_param=None, punchout_radius_metric=None):
+    if thresholds is None:
+      thresholds = [-1.5, -3, -20]
+    if punchout_radius_param is None:
+      punchout_radius_param = 0.3
+    if punchout_radius_metric is None:
+      punchout_radius_metric = 0.1 * numpy.sqrt(3)
+    super().__init__(thresholds, punchout_radius_param, punchout_radius_metric, True)
 
   def objective_functions(self, x):
     x1, x2, x3, x4 = x
@@ -397,6 +471,7 @@ class EMI(TestProblem):
     [20, 50, 100, 100, 50, 200],
     [20, 50, 100, 400, 50,  50],
   ])
+  budget = 100
 
   def __init__(self, thresholds=None, punchout_radius_param=None, punchout_radius_metric=None):
     if thresholds is None:
@@ -406,6 +481,7 @@ class EMI(TestProblem):
     if punchout_radius_metric is None:
       punchout_radius_metric = 10
     super().__init__(thresholds, punchout_radius_param, punchout_radius_metric)
+    self.punchout_radius_metric_normalized=0.3
 
   def _evaluate(self, suggestion):
     s = suggestion['silvert']

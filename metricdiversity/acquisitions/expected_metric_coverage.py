@@ -149,7 +149,7 @@ class EMCEngine(object):
 
   def get_next(self, model):
     emc = ExpectedMetricCoverage(model, self.thresholds, self.punchout_radius, normalize_y=self.normalize_y)
-    de = DEOptimizer(self.domain, emc, 10 * self.domain.dim)
+    de = DEOptimizer(self.domain, emc, 20 * self.domain.dim)
     next_point, all_results = de.optimize()
     best_emc = numpy.max(all_results["function_values"])
     if self.verbose:
