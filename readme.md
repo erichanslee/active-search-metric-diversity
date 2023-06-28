@@ -1,4 +1,7 @@
 # WinterSim Repo
+Code release for the paper [Achieving Diversity in Objective Space for Sample-Efficient Search of Multiobjective Optimization Problems](https://arxiv.org/abs/2306.13780), published in Winter Sim 2022. 
+The paper and this code release develop a method similar to active search. The method allows users to input a multiobjective design or optimization problem and obtain a set of diverse solutions. 
+The diversity of this solution set is important to a range of scientific and engineering applications. 
 
 # Installation
 Run `python setup.py install` in the command line. 
